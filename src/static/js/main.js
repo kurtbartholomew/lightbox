@@ -13,5 +13,4 @@ window.onload = function whenDocumentReady(event) {
       lightbox.init();
     }
   )
-
 }

@@ -1,49 +1,9 @@
 (function(global) {
   // if only caring about HTML5, could use template element instead
   // could also put this in a display:none textarea on dom
-  var templateHTML = '<a href="#" data-lightbox data-lightbox-group={groupId}>'+
+  var templateHTML = '<a href={src} data-lightbox data-lightbox-group={groupId}>'+
                        '<img src={src} alt={alttext} />' +
-                     '</a>'
-  
-  // ======================== XHR FUNCTIONS ===============================
-  // TODO: Modularize and place elsewhere
-  // TODO: Leverage localStorage if detected to avoid unneeded xhr's
-
-  function retrieveAPIResults(apiUrl, options, callback) {
-    var request = new XMLHttpRequest();
-    
-    options = options || {};
-    apiUrl = populateAdditionalOptions(apiUrl, options)
-    
-    // TODO: Abstract responseHandler out to be more robust
-    request.onreadystatechange = function responseHandler() {
-      if(request && request.readyState === XMLHttpRequest.DONE) {
-        var response = {};
-        if(request.status === 200) {
-          try {
-            response.results = JSON.parse(request.responseText);
-          } catch(e) {
-            response.error = "Unable to parse JSON. Response is likely malformed. " + e.toString();
-          }
-        } else {
-          response.error = "Unable to complete api request. An error has occurred. " + request.statusText;
-        }
-        callback(response);
-      }
-    }
-    request.open('GET', apiUrl);
-    request.send();
-  }
-  
-  function populateAdditionalOptions(apiUrl, options) {
-    var optionString = "";
-    for(var optionName in options) {
-      optionString += "&" + optionName + "=" + options[optionName];
-    }
-    return apiUrl + optionString;
-  }
-
-  // ===================================================================
+                     '</a>';
 
   // ================= Photo Gallery Construction Functions ============ 
 

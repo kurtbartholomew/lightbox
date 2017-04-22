@@ -67,7 +67,7 @@
     var div = document.createElement('div');
     var fullHTMLString = replaceAttributesInTemplate(
       templateHTMLString,
-      attrExtractor(templateData)
+      attrExtractor === undefined ? templateData : attrExtractor(templateData)
     )
     // TODO: Handle IE edge cases for use of innerHTML with tables
     div.innerHTML = fullHTMLString;
@@ -84,9 +84,64 @@
   }
 
   // ==============================================================
+  
+  // ======================== XHR FUNCTIONS ===============================
+  // TODO: Leverage localStorage if detected to avoid unneeded xhr's
+
+  function retrieveAPIResults(apiUrl, options, callback) {
+    var request = new XMLHttpRequest();
+    
+    options = options || {};
+    apiUrl = populateAdditionalOptions(apiUrl, options)
+    
+    // TODO: Abstract responseHandler out to be more robust
+    request.onreadystatechange = function responseHandler() {
+      if(request && request.readyState === XMLHttpRequest.DONE) {
+        var response = {};
+        if(request.status === 200) {
+          try {
+            response.results = JSON.parse(request.responseText);
+          } catch(e) {
+            response.error = "Unable to parse JSON. Response is likely malformed. " + e.toString();
+          }
+        } else {
+          response.error = "Unable to complete api request. An error has occurred. " + request.statusText;
+        }
+        callback(response);
+      }
+    }
+    request.open('GET', apiUrl);
+    request.send();
+  }
+  
+  function populateAdditionalOptions(apiUrl, options) {
+    var optionString = "";
+    for(var optionName in options) {
+      optionString += "&" + optionName + "=" + options[optionName];
+    }
+    return apiUrl + optionString;
+  }
+
+  // ===================================================================
+  
+
+  function addClassToNode(node, classNamme) {
+    if(node.className.indexOf(classNamme) === -1) {
+      node.className = node.className + " " + classNamme;
+    }
+  }
+
+  function removeClassFromNode(node, classNamme) {
+    if(node.className.indexOf(classNamme) > -1) {
+      node.className = (node.className.replace(classNamme,' ')).trim();
+    }
+  }
 
   global.off = off;
   global.on = on;
   global.createElementFromTemplate = createElementFromTemplate;
+  global.retrieveAPIResults = retrieveAPIResults;
+  global.addClassToNode = addClassToNode;
+  global.removeClassFromNode = removeClassFromNode;
 
 })(window);

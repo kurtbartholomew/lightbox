@@ -2,12 +2,26 @@
   var LIGHTBOX_INIT_ATTRIBUTE = "data-lightbox";
   var LIGHTBOX_GROUP_ATTRIBUTE = "data-lightbox-group";
   var OVERLAY_CLASS_NAME = "lightbox-overlay";
+  var LIGHTBOX_CLASS_NAME = "lightbox-main";
+  var LIGHTBOX_CLOSE_BUTTON_CLASS = "lightbox-close";
+  var LIGHTBOX_CLOSE_BUTTON_CLASS = "lightbox-close";
+  var CURRENT_IMAGE_CLASS = "lightbox-image__current";
+
+  var templateHTML = '<div class="{lightboxClassName}">'+
+                     '<div class={lightboxExitClassName}>X</div>'
+                     '</div>';
+  
+  var mainImageHTML = '<div class="{lightboxClassName}">'+
+                      '<div class={lightboxExitClassName}>X</div>'
+                      '</div>';
 
   if(global.lightbox) {
     // store possibly defined lightbox
     global._lightbox = global.lightbox;
   }
   
+  // ================== INITIALIZATION  START ============================
+
   // TODO: Abstract out grouping functionality for clarity
   var initLightBoxListeners = function(config) {
     var internalGroupCounter = 0;
@@ -47,31 +61,80 @@
     // remove and bind if called multiple times
     off('body','click');
     on('body','click','[' + LIGHTBOX_INIT_ATTRIBUTE + ']', handleLightboxClicks);
-    addOverlayIfNeeded();
+    initBaseComponentsIfNeeded();
   };
+
+  function initBaseComponentsIfNeeded() {
+    addOverlay();
+    addLightboxContainer();
+  }
+
+  function addOverlay() {
+    var node = document.querySelector("." + OVERLAY_CLASS_NAME);
+    if(!node) {
+      node = document.createElement('div');
+      node.className = OVERLAY_CLASS_NAME;
+      document.body.appendChild(node);
+    }
+  }
+
+  function addLightboxContainer() {
+    var node = document.querySelector("." + LIGHTBOX_CLASS_NAME);
+    if(!node) {
+      var lightboxContainer = createElementFromTemplate(templateHTML, {
+        lightboxClassName: LIGHTBOX_CLASS_NAME,
+        lightboxExitClassName: LIGHTBOX_CLOSE_BUTTON_CLASS
+      });
+      document.body.appendChild(lightboxContainer);
+      var closeButton = document.querySelector("." + LIGHTBOX_CLOSE_BUTTON_CLASS);
+      closeButton.addEventListener('click', handleLightboxClose);
+    }
+  }
+
+  // ================== INITIALIZATION END =========================
+  
+  // ================== INTERACTION START ==========================
+  
+  function handleLightboxClose(){
+    hideLightbox();
+  }
 
   function handleLightboxClicks(event) {
     event.preventDefault();
     console.log(this);
     displayOverlay();
-  }
-
-  function addOverlayIfNeeded() {
-    var overlayNode = document.querySelector("." + OVERLAY_CLASS_NAME);
-    if(!overlayNode) {
-      overlayNode = document.createElement('div');
-      overlayNode.className = OVERLAY_CLASS_NAME;
-      document.body.appendChild(overlayNode);
-    }
+    displayLightboxContainer();
   }
 
   function displayOverlay() {
     var overlayNode = document.querySelector("." + OVERLAY_CLASS_NAME);
     // Can also be done via class names in the name of extensible styles
-    overlayNode.style.display = "block";
     document.body.style.overflowY = "hidden";
+    removeClassFromNode(overlayNode, "fadeOut");
+    addClassToNode(overlayNode,"fadeIn");
   }
 
+  function displayLightboxContainer() {
+    var lightboxMain = document.querySelector("." + LIGHTBOX_CLASS_NAME);
+    removeClassFromNode(lightboxMain, "leaveTop");
+    addClassToNode(lightboxMain,"appearFromTop");
+  }
+
+  function hideLightbox() {
+    var overlayNode = document.querySelector("." + OVERLAY_CLASS_NAME);
+    var lightboxMain = document.querySelector("." + LIGHTBOX_CLASS_NAME);
+    removeClassFromNode(overlayNode, "fadeIn");
+    removeClassFromNode(lightboxMain, "appearFromTop");
+    addClassToNode(overlayNode, "fadeOut");
+    addClassToNode(lightboxMain, "leaveTop");
+    document.body.style.overflowY = "auto";
+  }
+  
+  // ==================== INTERACTION END =========================
+  
+  // ================== RENDER START ==========================
+
+  // ================== RENDER END ============================
   global.lightbox = {
     init: initLightBoxListeners
   }
