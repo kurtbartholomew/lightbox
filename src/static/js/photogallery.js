@@ -81,35 +81,8 @@
   }
   
   function createPhotoGalleryElement(resultData) {
-    return createElementFromTemplate(resultData, extractGiphyAttrs);
+    return window.createElementFromTemplate(templateHTML, resultData, extractGiphyAttrs);
   }
-
-  // ==============================================================
-
-  // ================== TEMPLATE FUNCTIONS ========================
-  // TODO: Modularize and place elsewhere
-
-  function createElementFromTemplate(templateData, attrExtractor) {
-    var div = document.createElement('div');
-    var templateString = replaceAttributesInTemplate(
-      templateHTML,
-      attrExtractor(templateData)
-    )
-    // TODO: Handle IE edge cases for use of innerHTML with tables
-    div.innerHTML = templateString;
-    return div.firstChild;
-  }
-
-  function replaceAttributesInTemplate(template, attrOptions) {
-   return template.replace(/\{(\w+)\}/gi, function(match, attr) {
-     if (attrOptions[attr] !== undefined) {
-       return attrOptions[attr];
-     }
-     return match;
-   });
-  }
-
-  // ===============================================================
 
   function extractGiphyAttrs(json) {
     return {

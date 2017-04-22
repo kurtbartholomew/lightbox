@@ -30,3 +30,15 @@ body {
 .photo-gallery a:hover {
   background-color: grey;
 }
+
+.lightbox-overlay {
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: #000;
+  opacity: 0.75;
+  z-index: 100;
+  position: absolute;
+  display: none;
+}
