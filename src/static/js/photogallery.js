@@ -1,23 +1,24 @@
 (function(global) {
   // if only caring about HTML5, could use template element instead
   // could also put this in a display:none textarea on dom
-  var templateHTML = '<a href="" data-lightbox data-lightbox-group={groupId}> \
-                        <img src={src} alt={alttext} /> \
-                      </a>'
+  var templateHTML = '<a href="#" data-lightbox data-lightbox-group={groupId}>'+
+                       '<img src={src} alt={alttext} />' +
+                     '</a>'
   
   // ======================== XHR FUNCTIONS ===============================
   // TODO: Modularize and place elsewhere
+  // TODO: Leverage localStorage if detected to avoid unneeded xhr's
 
   function retrieveAPIResults(apiUrl, options, callback) {
     var request = new XMLHttpRequest();
     
     options = options || {};
     apiUrl = populateAdditionalOptions(apiUrl, options)
-
+    
+    // TODO: Abstract responseHandler out to be more robust
     request.onreadystatechange = function responseHandler() {
       if(request && request.readyState === XMLHttpRequest.DONE) {
         var response = {};
-        console.log(request);
         if(request.status === 200) {
           try {
             response.results = JSON.parse(request.responseText);
@@ -46,14 +47,14 @@
 
   // ================= Photo Gallery Construction Functions ============ 
 
-  function constructPhotoGalleryViaAPI(pageAnchorSelector, url, options) {
+  function constructPhotoGalleryViaAPI(pageAnchorSelector, url, options, callback) {
     try {
       retrieveAPIResults(url, options, function handleResults(response){
-        console.log(response);
         if(response.results) {
           constructImageGallery(pageAnchorSelector, response.results);
         }
         // TODO: Robustly handle presence of response.error
+        callback();
       });
     } catch(e) {
       // TODO: Log output of failure to log aggregator
@@ -112,9 +113,10 @@
 
   function extractGiphyAttrs(json) {
     return {
-      src: json.images.fixed_height.url || "",
+      src: json.images.fixed_height_small.url || "",
       alttext: json.slug || "",
-      title: json.slug || ""
+      title: json.slug || "",
+      groupId: json.groupId || 1
     }
   }
   
