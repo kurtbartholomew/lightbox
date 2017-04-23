@@ -18,7 +18,7 @@
   
   var mainImageHTML = '<img class={currentImageClassName} src={src} alt={text} />';
 
-  var groupImagesHTML = '<li class={imageGroupClassName}>'+
+  var groupImagesHTML = '<li class={imageGroupClassName} >'+
                           '<img src={src} alt={text}'+
                         '</li>';
 
@@ -70,7 +70,9 @@
 
     // remove and bind if called multiple times
     off('body','click');
+    document.body.removeEventListener('keydown',handleLightboxKeyPress);
     on('body','click','[' + LIGHTBOX_INIT_ATTRIBUTE + ']', handleLightboxClick);
+    document.body.addEventListener('keydown',handleLightboxKeyPress);
     initBaseComponentsIfNeeded();
   };
 
@@ -111,6 +113,35 @@
     hideLightbox();
   }
 
+  function handleLightboxKeyPress(event) {
+    var overlayNode = document.querySelector("." + OVERLAY_CLASS_NAME);
+    if(isVisible(overlayNode)) {
+      if(event.keyCode === 27) {
+        hideLightbox();
+      }
+      if(event.keyCode === 37) {
+        handlePreviousImageKeyPress();
+      }
+      if(event.keyCode === 39) {
+        handleNextImageKeyPress();
+      }
+    }
+  }
+
+  function handlePreviousImageKeyPress() {
+    var imageNode = findPreviousImageNodeInGroup();
+    if(imageNode) {
+      renderNewCurrentImageFromGroup(imageNode);
+    }
+  }
+
+  function handleNextImageKeyPress() {
+    var imageNode = findNextImageNodeInGroup();
+    if(imageNode) {
+      renderNewCurrentImageFromGroup(imageNode);
+    }
+  }
+
   function handleLightboxClick(event) {
     event.preventDefault();
     displayOverlay();
@@ -119,27 +150,11 @@
   }
 
   function handleImageGroupClick() {
-    var groupImagesSelector = "." + GROUP_IMAGE_CONTAINER_CLASS + " > ." + LIGHTBOX_GROUP_CLASS;
-    var groupImageNodes = document.querySelectorAll(groupImagesSelector);
-    var currentImageSelector = "." + CURRENT_IMAGE_CONTAINER_CLASS + " > ." + CURRENT_IMAGE_CLASS;
-    var currentImageNode = document.querySelector(currentImageSelector);
-    var lightboxMain = document.querySelector("." + LIGHTBOX_CLASS_NAME);
-    
-    for(var i = 0; i < groupImageNodes.length; i++) {
-      var node = groupImageNodes[i];
-      removeClassFromNode(node, CURRENT_ACTIVE_IMAGE_IN_GROUP_CLASS);
-      if(node === this) {
-        addClassToNode(this, CURRENT_ACTIVE_IMAGE_IN_GROUP_CLASS);
-        currentImageNode.setAttribute("src",node.firstChild.getAttribute("src"));
-        lightboxMain.scrollTop = 0;
-      }
-    }
+    renderNewCurrentImageFromGroup(this);
   }
 
   function displayOverlay() {
     var overlayNode = document.querySelector("." + OVERLAY_CLASS_NAME);
-    // Can also be done via class names in the name of extensible styles
-    overlayNode.style.top = window.pageYOffset+"px";
     document.body.style.overflowY = "hidden";
     removeClassFromNode(overlayNode, "fadeOut");
     addClassToNode(overlayNode,"fadeIn");
@@ -147,9 +162,7 @@
 
   function displayLightboxContainer() {
     var lightboxMain = document.querySelector("." + LIGHTBOX_CLASS_NAME);
-    // removeClassFromNode(lightboxMain, "leaveTop");
-    // addClassToNode(lightboxMain,"appearFromTop");
-    lightboxMain.style.top = window.pageYOffset+"px";
+    lightboxMain.style.top = 0;
   }
 
   function hideLightbox() {
@@ -163,6 +176,67 @@
   
   // ==================== INTERACTION END =========================
   
+  // ==================== HELPER METHODS START ====================
+  
+  function isVisible(node) {
+    return !!(node.offsetWidth || node.offsetHeight || node.getClientRects().length);
+  }
+
+  function getImageGroupNodes() {
+    var groupImagesSelector = "." + GROUP_IMAGE_CONTAINER_CLASS + " > ." + LIGHTBOX_GROUP_CLASS;
+    return document.querySelectorAll(groupImagesSelector);
+  }
+
+  function getCurrentImageNode() {
+    var currentImageSelector = "." + CURRENT_IMAGE_CONTAINER_CLASS + " > ." + CURRENT_IMAGE_CLASS;
+    return document.querySelector(currentImageSelector);
+  }
+
+  function getCurrentImageContainerNode() {
+    var containerSelector = "." + LIGHTBOX_CLASS_NAME + " ." + CURRENT_IMAGE_CONTAINER_CLASS;
+    return document.querySelector(containerSelector);
+  }
+
+  function getImageGroupContainerNode() {
+    var containerSelector = "." + LIGHTBOX_CLASS_NAME + " ." + GROUP_IMAGE_CONTAINER_CLASS;
+    return document.querySelector(containerSelector);
+  }
+  
+  function findNextImageNodeInGroup() {
+    var imageNodes = getImageGroupNodes();
+    var currentImageNode = getCurrentImageNode();
+    var index = -1;
+    for(var i = 0; i < imageNodes.length; i++) {
+      if(imageNodes[i].firstChild.getAttribute('src') === currentImageNode.getAttribute('src')) {
+        index = i;
+      }
+    }
+    if(index > -1 && imageNodes.length > index) {
+      return imageNodes[index+1];
+    } else {
+      return undefined;
+    }
+  }
+
+  function findPreviousImageNodeInGroup() {
+    var imageNodes = getImageGroupNodes();
+    var currentImageNode = getCurrentImageNode();
+    var index = -1;
+    for(var i = 0; i < imageNodes.length; i++) {
+      if(imageNodes[i].firstChild.getAttribute('src') === currentImageNode.getAttribute('src')) {
+        index = i;
+      }
+    }
+    if(index > -1 && index > 0) {
+      return imageNodes[index-1];
+    } else {
+      return undefined;
+    }
+  }
+
+
+  // ==================== HELPER METHODS END ======================
+
   // ================== RENDER START ==========================
   
   // state held to tell if we should rerender or not
@@ -173,6 +247,22 @@
     renderGroupImages(selectedNode);
   }
 
+  function renderNewCurrentImageFromGroup(newImageNode) {
+    var groupImageNodes = getImageGroupNodes();
+    var currentImageNode = getCurrentImageNode();
+    var lightboxMain = document.querySelector("." + LIGHTBOX_CLASS_NAME);
+    
+    for(var i = 0; i < groupImageNodes.length; i++) {
+      var node = groupImageNodes[i];
+      removeClassFromNode(node, CURRENT_ACTIVE_IMAGE_IN_GROUP_CLASS);
+      if(node === newImageNode) {
+        addClassToNode(newImageNode, CURRENT_ACTIVE_IMAGE_IN_GROUP_CLASS);
+        currentImageNode.setAttribute("src", node.firstChild.getAttribute("src"));
+        lightboxMain.scrollTop = 0;
+      }
+    }
+  }
+
   function renderCurrentImage(node) {
     var imgSource = node.getAttribute('original-src');
     var currentImageNode = createElementFromTemplate(mainImageHTML, {
@@ -180,8 +270,7 @@
       src: imgSource,
       text: ""
     });
-    var containerSelector = "." + LIGHTBOX_CLASS_NAME + " ." + CURRENT_IMAGE_CONTAINER_CLASS;
-    var lightboxImageContainer = document.querySelector(containerSelector);
+    var lightboxImageContainer = getCurrentImageContainerNode();
     lightboxImageContainer.innerHTML = '';
     lightboxImageContainer.appendChild(currentImageNode);
   }
@@ -191,9 +280,8 @@
     var imageGroup = node.getAttribute('data-lightbox-group');
     var imageNodesInGroup = lightboxGroups[imageGroup];
 
-    var containerSelector = "." + LIGHTBOX_CLASS_NAME + " ." + GROUP_IMAGE_CONTAINER_CLASS;
-    var groupImagesContainer = document.querySelector(containerSelector);
-    off("." + GROUP_IMAGE_CONTAINER_CLASS,'click',"." + LIGHTBOX_GROUP_CLASS,handleImageGroupClick);
+    var groupImagesContainer = getImageGroupContainerNode();
+    off("." + GROUP_IMAGE_CONTAINER_CLASS,'click',"." + LIGHTBOX_GROUP_CLASS, handleImageGroupClick);
     groupImagesContainer.innerHTML = '';
 
     if(imageNodesInGroup.length < 2) { return; }

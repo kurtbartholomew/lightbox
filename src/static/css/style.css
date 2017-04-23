@@ -43,7 +43,7 @@ body {
   right: 0;
   background-color: #000;
   z-index: 100;
-  position: absolute;
+  position: fixed;
   display: none;
   opacity: 0;
   transition: opacity 1s;
@@ -54,16 +54,17 @@ body {
   right: 10%;
   left: 10%;
   height: 100%;
-  background-color: grey;
-  position: absolute;
+  background-color: #333;
+  position: fixed;
   z-index: 101;
   border-radius: 0.25rem;
   overflow: auto;
   transition: top 1s;
+  min-width: 10.9375rem;
 }
 
 .lightbox-close {
-  font-family: sans-serif;
+  font-family: Arial, sans-serif;
   font-size: 1rem;
   text-align: center;
   position: absolute;
@@ -73,14 +74,14 @@ body {
   width: 2rem;
   padding-top: 0.5rem;
   cursor: pointer;
-  color: white;
+  color: #CCC;
   border-radius: 1rem;
 }
 
 .lightbox-image-container {
   margin: 5% auto;
   width: 80%;
-  height: 60%;
+  // height: 60%;
 }
 
 .lightbox-image-current {
@@ -98,8 +99,6 @@ body {
   list-style-type: none;
   height: 15%;
   padding: 0 1rem;
-  position: absolute;
-  bottom: 1rem;
   text-align: center;
 }
 
@@ -126,21 +125,10 @@ body {
   opacity: 1;
 }
 
-
-.lightbox-main.appearFromTop {
-  -webkit-animation: appearFromTop 1s forwards;
-  animation: appearFromTop 1s forwards;
-}
-
 .lightbox-overlay.fadeIn {
   -webkit-animation: fadeIn 1s forwards;
   animation: fadeIn 1s forwards;
   display: block;
-}
-
-.lightbox-main.leaveTop {
-  -webkit-animation: leaveTop 1s forwards;
-  animation: leaveTop 1s forwards;
 }
 
 .lightbox-overlay.fadeOut {
@@ -159,16 +147,6 @@ body {
   100% {opacity: 1;}
 }
 
-@keyframes appearFromTop {
-  0% {top: -100%; bottom 100%;}
-  100% {top: 10%; bottom: 10%;} 
-}
-
-@-webkit-keyframes appearFromTop {
-  0% {top: -100%; bottom 100%;}
-  100% {top: 10%; bottom: 10%;}
-}
-
 @keyframes fadeOut {
   0% {opacity: 1;}
   100% {opacity: 0;}
@@ -177,16 +155,6 @@ body {
 @-webkit-keyframes fadeOut {
   0% {opacity: 1;}
   100% {opacity: 0;}
-}
-
-@keyframes leaveTop {
-  0% {top: 10%; bottom: 10%;}
-  100% {top: -100%; bottom 100%;}
-}
-
-@-webkit-keyframes leaveTop {
-  0% {top: 10%; bottom: 10%;}
-  100% {top: -100%; bottom 100%;}
 }
 
 /* Lightbox CSS End */
