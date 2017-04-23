@@ -1,16 +1,16 @@
 window.onload = function whenDocumentReady(event) {
-  // constructPhotoGalleryViaAPI('.photo-gallery',
-  //   'http://api.giphy.com/v1/gifs/trending?api_key=dc6zaTOxFJmzC',
-  //   {},
-  //   function initLightBox() {
-  //     lightbox.init();
-  //   }
-  // )
   constructPhotoGalleryViaAPI('.photo-gallery',
-    'results.json',
+    'http://api.giphy.com/v1/gifs/trending?api_key=dc6zaTOxFJmzC',
     {},
     function initLightBox() {
       lightbox.init();
     }
   )
+  // constructPhotoGalleryViaAPI('.photo-gallery',
+  //   'results.json',
+  //   {},
+  //   function initLightBox() {
+  //     lightbox.init();
+  //   }
+  // )
 }

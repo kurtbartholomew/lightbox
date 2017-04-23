@@ -70,7 +70,7 @@
 
     // remove and bind if called multiple times
     off('body','click');
-    on('body','click','[' + LIGHTBOX_INIT_ATTRIBUTE + ']', handleLightboxClicks);
+    on('body','click','[' + LIGHTBOX_INIT_ATTRIBUTE + ']', handleLightboxClick);
     initBaseComponentsIfNeeded();
   };
 
@@ -99,7 +99,7 @@
       });
       document.body.appendChild(lightboxContainer);
       var closeButton = document.querySelector("." + LIGHTBOX_CLOSE_BUTTON_CLASS);
-      closeButton.addEventListener('click', handleLightboxClose);
+      closeButton.addEventListener('click', handleLightboxCloseClick);
     }
   }
 
@@ -107,20 +107,39 @@
   
   // ================== INTERACTION START ==========================
   
-  function handleLightboxClose(){
+  function handleLightboxCloseClick(){
     hideLightbox();
   }
 
-  function handleLightboxClicks(event) {
+  function handleLightboxClick(event) {
     event.preventDefault();
     displayOverlay();
     displayLightboxContainer();
     renderCurrentImageAndGroup(this);
   }
 
+  function handleImageGroupClick() {
+    var groupImagesSelector = "." + GROUP_IMAGE_CONTAINER_CLASS + " > ." + LIGHTBOX_GROUP_CLASS;
+    var groupImageNodes = document.querySelectorAll(groupImagesSelector);
+    var currentImageSelector = "." + CURRENT_IMAGE_CONTAINER_CLASS + " > ." + CURRENT_IMAGE_CLASS;
+    var currentImageNode = document.querySelector(currentImageSelector);
+    var lightboxMain = document.querySelector("." + LIGHTBOX_CLASS_NAME);
+    
+    for(var i = 0; i < groupImageNodes.length; i++) {
+      var node = groupImageNodes[i];
+      removeClassFromNode(node, CURRENT_ACTIVE_IMAGE_IN_GROUP_CLASS);
+      if(node === this) {
+        addClassToNode(this, CURRENT_ACTIVE_IMAGE_IN_GROUP_CLASS);
+        currentImageNode.setAttribute("src",node.firstChild.getAttribute("src"));
+        lightboxMain.scrollTop = 0;
+      }
+    }
+  }
+
   function displayOverlay() {
     var overlayNode = document.querySelector("." + OVERLAY_CLASS_NAME);
     // Can also be done via class names in the name of extensible styles
+    overlayNode.style.top = window.pageYOffset+"px";
     document.body.style.overflowY = "hidden";
     removeClassFromNode(overlayNode, "fadeOut");
     addClassToNode(overlayNode,"fadeIn");
@@ -128,17 +147,17 @@
 
   function displayLightboxContainer() {
     var lightboxMain = document.querySelector("." + LIGHTBOX_CLASS_NAME);
-    removeClassFromNode(lightboxMain, "leaveTop");
-    addClassToNode(lightboxMain,"appearFromTop");
+    // removeClassFromNode(lightboxMain, "leaveTop");
+    // addClassToNode(lightboxMain,"appearFromTop");
+    lightboxMain.style.top = window.pageYOffset+"px";
   }
 
   function hideLightbox() {
     var overlayNode = document.querySelector("." + OVERLAY_CLASS_NAME);
     var lightboxMain = document.querySelector("." + LIGHTBOX_CLASS_NAME);
     removeClassFromNode(overlayNode, "fadeIn");
-    removeClassFromNode(lightboxMain, "appearFromTop");
     addClassToNode(overlayNode, "fadeOut");
-    addClassToNode(lightboxMain, "leaveTop");
+    lightboxMain.style.top = "-100%";
     document.body.style.overflowY = "auto";
   }
   
@@ -150,7 +169,6 @@
   var lastGroupFocused = undefined;
 
   function renderCurrentImageAndGroup(selectedNode) {
-    console.log(selectedNode);
     renderCurrentImage(selectedNode);
     renderGroupImages(selectedNode);
   }
@@ -167,14 +185,18 @@
     lightboxImageContainer.innerHTML = '';
     lightboxImageContainer.appendChild(currentImageNode);
   }
-
+  
+  // TODO: Create reset method to reset active image if group is the same
   function renderGroupImages(node) {
     var imageGroup = node.getAttribute('data-lightbox-group');
     var imageNodesInGroup = lightboxGroups[imageGroup];
 
     var containerSelector = "." + LIGHTBOX_CLASS_NAME + " ." + GROUP_IMAGE_CONTAINER_CLASS;
     var groupImagesContainer = document.querySelector(containerSelector);
+    off("." + GROUP_IMAGE_CONTAINER_CLASS,'click',"." + LIGHTBOX_GROUP_CLASS,handleImageGroupClick);
     groupImagesContainer.innerHTML = '';
+
+    if(imageNodesInGroup.length < 2) { return; }
 
     for(var i = 0; i < imageNodesInGroup.length; i++) {
       var currentNode = imageNodesInGroup[i];
@@ -192,6 +214,7 @@
       // potentially a reflow concern but modern browsers batch appends well
       groupImagesContainer.appendChild(currentImageNode);
     }
+    on("." + GROUP_IMAGE_CONTAINER_CLASS,'click',"." + LIGHTBOX_GROUP_CLASS, handleImageGroupClick);
   }
 
   // ================== RENDER END ============================

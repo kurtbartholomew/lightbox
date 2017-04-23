@@ -28,10 +28,10 @@
     if(results === undefined) {
       rootElement.appendChild(document.createTextNode('Sorry! Didn\'t work!'));
     } else {
-      results.groupId = Math.floor(Math.random() * 100);
       rootElement = document.querySelector(pageAnchorSelector);
       if(rootElement) {
         for(var i = 0; i < results.data.length; i++) {
+          results.data[i].groupId = Math.floor(Math.random() * 5);
           rootElement.appendChild(createPhotoGalleryElement(results.data[i]));
         }
       } else {
@@ -47,7 +47,7 @@
   function extractGiphyAttrs(json) {
     return {
       originalSrc: json.images.original.url || "",
-      src: json.images.fixed_height_small.url || "",
+      src: json.images.fixed_height_small_still.url || "",
       alttext: json.slug || "",
       title: json.slug || "",
       groupId: json.groupId || 1,
