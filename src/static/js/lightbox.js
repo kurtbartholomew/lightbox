@@ -1,19 +1,26 @@
-(function(global){
+(function(global) {
   var LIGHTBOX_INIT_ATTRIBUTE = "data-lightbox";
   var LIGHTBOX_GROUP_ATTRIBUTE = "data-lightbox-group";
   var OVERLAY_CLASS_NAME = "lightbox-overlay";
   var LIGHTBOX_CLASS_NAME = "lightbox-main";
   var LIGHTBOX_CLOSE_BUTTON_CLASS = "lightbox-close";
-  var LIGHTBOX_CLOSE_BUTTON_CLASS = "lightbox-close";
-  var CURRENT_IMAGE_CLASS = "lightbox-image__current";
+  var CURRENT_IMAGE_CONTAINER_CLASS = "lightbox-image-container";
+  var GROUP_IMAGE_CONTAINER_CLASS = "lightbox-group-container";
+  var CURRENT_IMAGE_CLASS = "lightbox-image-current";
+  var LIGHTBOX_GROUP_CLASS = "lightbox-group-image";
+  var CURRENT_ACTIVE_IMAGE_IN_GROUP_CLASS = 'lightbox-group-image__current';
 
   var templateHTML = '<div class="{lightboxClassName}">'+
-                     '<div class={lightboxExitClassName}>X</div>'
+                        '<div class={lightboxExitClassName}>X</div>' +
+                        '<div class={currentImageContainerClassName}></div>' +
+                        '<ul class={groupImageContainerClassName}></ul>' +
                      '</div>';
   
-  var mainImageHTML = '<div class="{lightboxClassName}">'+
-                      '<div class={lightboxExitClassName}>X</div>'
-                      '</div>';
+  var mainImageHTML = '<img class={currentImageClassName} src={src} alt={text} />';
+
+  var groupImagesHTML = '<li class={imageGroupClassName}>'+
+                          '<img src={src} alt={text}'+
+                        '</li>';
 
   if(global.lightbox) {
     // store possibly defined lightbox
@@ -23,13 +30,16 @@
   // ================== INITIALIZATION  START ============================
 
   // TODO: Abstract out grouping functionality for clarity
+  
+  var lightboxGroups;
+
   var initLightBoxListeners = function(config) {
     var internalGroupCounter = 0;
 
     // find clickable anchors to open a lightbox
     var allLightboxes = document.querySelectorAll('[' + LIGHTBOX_INIT_ATTRIBUTE + ']');
     
-    var lightboxGroups = {};
+    lightboxGroups = {};
     // organize lightboxes by group
     for(var i = 0; i < allLightboxes.length; i++) {
       var node = allLightboxes[i];
@@ -83,7 +93,9 @@
     if(!node) {
       var lightboxContainer = createElementFromTemplate(templateHTML, {
         lightboxClassName: LIGHTBOX_CLASS_NAME,
-        lightboxExitClassName: LIGHTBOX_CLOSE_BUTTON_CLASS
+        lightboxExitClassName: LIGHTBOX_CLOSE_BUTTON_CLASS,
+        currentImageContainerClassName: CURRENT_IMAGE_CONTAINER_CLASS,
+        groupImageContainerClassName: GROUP_IMAGE_CONTAINER_CLASS
       });
       document.body.appendChild(lightboxContainer);
       var closeButton = document.querySelector("." + LIGHTBOX_CLOSE_BUTTON_CLASS);
@@ -101,9 +113,9 @@
 
   function handleLightboxClicks(event) {
     event.preventDefault();
-    console.log(this);
     displayOverlay();
     displayLightboxContainer();
+    renderCurrentImageAndGroup(this);
   }
 
   function displayOverlay() {
@@ -133,6 +145,54 @@
   // ==================== INTERACTION END =========================
   
   // ================== RENDER START ==========================
+  
+  // state held to tell if we should rerender or not
+  var lastGroupFocused = undefined;
+
+  function renderCurrentImageAndGroup(selectedNode) {
+    console.log(selectedNode);
+    renderCurrentImage(selectedNode);
+    renderGroupImages(selectedNode);
+  }
+
+  function renderCurrentImage(node) {
+    var imgSource = node.getAttribute('original-src');
+    var currentImageNode = createElementFromTemplate(mainImageHTML, {
+      currentImageClassName: CURRENT_IMAGE_CLASS,
+      src: imgSource,
+      text: ""
+    });
+    var containerSelector = "." + LIGHTBOX_CLASS_NAME + " ." + CURRENT_IMAGE_CONTAINER_CLASS;
+    var lightboxImageContainer = document.querySelector(containerSelector);
+    lightboxImageContainer.innerHTML = '';
+    lightboxImageContainer.appendChild(currentImageNode);
+  }
+
+  function renderGroupImages(node) {
+    var imageGroup = node.getAttribute('data-lightbox-group');
+    var imageNodesInGroup = lightboxGroups[imageGroup];
+
+    var containerSelector = "." + LIGHTBOX_CLASS_NAME + " ." + GROUP_IMAGE_CONTAINER_CLASS;
+    var groupImagesContainer = document.querySelector(containerSelector);
+    groupImagesContainer.innerHTML = '';
+
+    for(var i = 0; i < imageNodesInGroup.length; i++) {
+      var currentNode = imageNodesInGroup[i];
+      var imgSource = currentNode.getAttribute('original-src');
+      var currentImageNode = createElementFromTemplate(groupImagesHTML, {
+        imageGroupClassName: LIGHTBOX_GROUP_CLASS,
+        src: imgSource,
+        text: "",
+      });
+      
+      if(imgSource === node.getAttribute('original-src')) {
+        addClassToNode(currentImageNode,CURRENT_ACTIVE_IMAGE_IN_GROUP_CLASS);
+      }
+
+      // potentially a reflow concern but modern browsers batch appends well
+      groupImagesContainer.appendChild(currentImageNode);
+    }
+  }
 
   // ================== RENDER END ============================
   global.lightbox = {
