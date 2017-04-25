@@ -1,7 +1,7 @@
 (function(global) {
   // if only caring about HTML5, could use template element instead
   // could also put this in a display:none textarea on dom
-  var templateHTML = '<a href="#" original-src={originalSrc} data-lightbox data-lightbox-group={groupId}>'+
+  var templateHTML = '<a href="#" desc={title} original-src={originalSrc} data-lightbox data-lightbox-group={groupId}>'+
                        '<img src={src} alt={alttext} />' +
                      '</a>';
 

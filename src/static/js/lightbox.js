@@ -1,25 +1,37 @@
 (function(global) {
-  var LIGHTBOX_INIT_ATTRIBUTE = "data-lightbox";
-  var LIGHTBOX_GROUP_ATTRIBUTE = "data-lightbox-group";
-  var OVERLAY_CLASS_NAME = "lightbox-overlay";
-  var LIGHTBOX_CLASS_NAME = "lightbox-main";
-  var LIGHTBOX_CLOSE_BUTTON_CLASS = "lightbox-close";
-  var CURRENT_IMAGE_CONTAINER_CLASS = "lightbox-image-container";
-  var GROUP_IMAGE_CONTAINER_CLASS = "lightbox-group-container";
-  var CURRENT_IMAGE_CLASS = "lightbox-image-current";
-  var LIGHTBOX_GROUP_CLASS = "lightbox-group-image";
+  var LIGHTBOX_INIT_ATTRIBUTE = 'data-lightbox';
+  var LIGHTBOX_GROUP_ATTRIBUTE = 'data-lightbox-group';
+  var OVERLAY_CLASS_NAME = 'lightbox-overlay';
+  var LIGHTBOX_CLASS_NAME = 'lightbox-main';
+  var LIGHTBOX_CLOSE_BUTTON_CLASS = 'lightbox-close';
+  var CURRENT_IMAGE_CONTAINER_CLASS = 'lightbox-image-container';
+  var GROUP_IMAGE_CONTAINER_CLASS = 'lightbox-group-container';
+  var CURRENT_IMAGE_CLASS = 'lightbox-image-current';
+  var LIGHTBOX_GROUP_CLASS = 'lightbox-group-image';
   var CURRENT_ACTIVE_IMAGE_IN_GROUP_CLASS = 'lightbox-group-image__current';
+  var PREV_GROUP_IMAGE_TRIGGER_CLASS = 'lightbox-previous-image';
+  var NEXT_GROUP_IMAGE_TRIGGER_CLASS = 'lightbox-next-image';
+  var CURRENT_IMAGE_DESCRIPTION_CLASS = 'lightbox-image-current-desc'
 
-  var templateHTML = '<div class="{lightboxClassName}">'+
+  var templateHTML = '<div class={lightboxClassName}>'+
                         '<div class={lightboxExitClassName}>X</div>' +
-                        '<div class={currentImageContainerClassName}></div>' +
+                        '<div class={currentImageContainerClassName}>' +
+                          '<div class={previousGroupImageTriggerClassName}>'+
+                            '<span></span>'+
+                          '</div>' +
+                          '<div class={nextGroupImageTriggerClassName}>'+
+                            '<span></span>'+
+                          '</div>' +
+                        '</div>' +
+                        '<div class={currentImageDescriptionClassName}>'+
+                        '</div>'+
                         '<ul class={groupImageContainerClassName}></ul>' +
                      '</div>';
   
   var mainImageHTML = '<img class={currentImageClassName} src={src} alt={text} />';
 
   var groupImagesHTML = '<li class={imageGroupClassName} >'+
-                          '<img src={src} alt={text}'+
+                          '<img src={src} alt={text} desc={desc} />'+
                         '</li>';
 
   if(global.lightbox) {
@@ -43,9 +55,9 @@
     // organize lightboxes by group
     for(var i = 0; i < allLightboxes.length; i++) {
       var node = allLightboxes[i];
-      if(node["attributes"][LIGHTBOX_GROUP_ATTRIBUTE] !== undefined &&
-         node["attributes"][LIGHTBOX_GROUP_ATTRIBUTE]["nodeValue"] !== undefined) {
-        var group = node["attributes"][LIGHTBOX_GROUP_ATTRIBUTE]["nodeValue"];
+      if(node['attributes'][LIGHTBOX_GROUP_ATTRIBUTE] !== undefined &&
+         node['attributes'][LIGHTBOX_GROUP_ATTRIBUTE]['nodeValue'] !== undefined) {
+        var group = node['attributes'][LIGHTBOX_GROUP_ATTRIBUTE]['nodeValue'];
         if (lightboxGroups[group] === undefined) {
           lightboxGroups[group] = [];
         }
@@ -56,7 +68,7 @@
     // populate all single lightboxes with a lightbox group to normalize functionality
     for(var j = 0; j < allLightboxes.length; j++) {
       var node = allLightboxes[j];
-      if(node["attributes"][LIGHTBOX_GROUP_ATTRIBUTE] === undefined) {
+      if(node['attributes'][LIGHTBOX_GROUP_ATTRIBUTE] === undefined) {
         while(internalGroupCounter in lightboxGroups) {
           ++internalGroupCounter;
         }
@@ -82,7 +94,7 @@
   }
 
   function addOverlay() {
-    var node = document.querySelector("." + OVERLAY_CLASS_NAME);
+    var node = document.querySelector('.' + OVERLAY_CLASS_NAME);
     if(!node) {
       node = document.createElement('div');
       node.className = OVERLAY_CLASS_NAME;
@@ -91,17 +103,27 @@
   }
 
   function addLightboxContainer() {
-    var node = document.querySelector("." + LIGHTBOX_CLASS_NAME);
+    var node = document.querySelector('.' + LIGHTBOX_CLASS_NAME);
     if(!node) {
       var lightboxContainer = createElementFromTemplate(templateHTML, {
         lightboxClassName: LIGHTBOX_CLASS_NAME,
         lightboxExitClassName: LIGHTBOX_CLOSE_BUTTON_CLASS,
         currentImageContainerClassName: CURRENT_IMAGE_CONTAINER_CLASS,
-        groupImageContainerClassName: GROUP_IMAGE_CONTAINER_CLASS
+        groupImageContainerClassName: GROUP_IMAGE_CONTAINER_CLASS,
+        previousGroupImageTriggerClassName: PREV_GROUP_IMAGE_TRIGGER_CLASS,
+        nextGroupImageTriggerClassName: NEXT_GROUP_IMAGE_TRIGGER_CLASS,
+        currentImageDescriptionClassName: CURRENT_IMAGE_DESCRIPTION_CLASS
       });
       document.body.appendChild(lightboxContainer);
-      var closeButton = document.querySelector("." + LIGHTBOX_CLOSE_BUTTON_CLASS);
+      var closeButton = document.querySelector('.' + LIGHTBOX_CLOSE_BUTTON_CLASS);
+      closeButton.removeEventListener('click', handleLightboxCloseClick);
       closeButton.addEventListener('click', handleLightboxCloseClick);
+      var previousImageButton = document.querySelector('.'+PREV_GROUP_IMAGE_TRIGGER_CLASS);
+      var nextImageButton = document.querySelector('.'+NEXT_GROUP_IMAGE_TRIGGER_CLASS);
+      previousImageButton.removeEventListener('click', handlePreviousImageClick);
+      previousImageButton.addEventListener('click', handlePreviousImageClick);
+      nextImageButton.removeEventListener('click', handleNextImageClick);
+      nextImageButton.addEventListener('click', handleNextImageClick);
     }
   }
 
@@ -114,7 +136,7 @@
   }
 
   function handleLightboxKeyPress(event) {
-    var overlayNode = document.querySelector("." + OVERLAY_CLASS_NAME);
+    var overlayNode = document.querySelector('.' + OVERLAY_CLASS_NAME);
     if(isVisible(overlayNode)) {
       if(event.keyCode === 27) {
         hideLightbox();
@@ -131,14 +153,28 @@
   function handlePreviousImageKeyPress() {
     var imageNode = findPreviousImageNodeInGroup();
     if(imageNode) {
-      renderNewCurrentImageFromGroup(imageNode);
+      makeNewImageCurrentImage(imageNode);
     }
   }
 
   function handleNextImageKeyPress() {
     var imageNode = findNextImageNodeInGroup();
     if(imageNode) {
-      renderNewCurrentImageFromGroup(imageNode);
+      makeNewImageCurrentImage(imageNode);
+    }
+  }
+
+  function handlePreviousImageClick() {
+    var imageNode = findPreviousImageNodeInGroup();
+    if(imageNode) {
+      makeNewImageCurrentImage(imageNode);
+    }
+  }
+
+  function handleNextImageClick() {
+    var imageNode = findNextImageNodeInGroup();
+    if(imageNode) {
+      makeNewImageCurrentImage(imageNode);
     }
   }
 
@@ -150,28 +186,28 @@
   }
 
   function handleImageGroupClick() {
-    renderNewCurrentImageFromGroup(this);
+    makeNewImageCurrentImage(this);
   }
 
   function displayOverlay() {
-    var overlayNode = document.querySelector("." + OVERLAY_CLASS_NAME);
-    document.body.style.overflowY = "hidden";
-    removeClassFromNode(overlayNode, "fadeOut");
-    addClassToNode(overlayNode,"fadeIn");
+    var overlayNode = document.querySelector('.' + OVERLAY_CLASS_NAME);
+    document.body.style.overflowY = 'hidden';
+    removeClassFromNode(overlayNode, 'fadeOut');
+    addClassToNode(overlayNode,'fadeIn');
   }
 
   function displayLightboxContainer() {
-    var lightboxMain = document.querySelector("." + LIGHTBOX_CLASS_NAME);
+    var lightboxMain = document.querySelector('.' + LIGHTBOX_CLASS_NAME);
     lightboxMain.style.top = 0;
   }
 
   function hideLightbox() {
-    var overlayNode = document.querySelector("." + OVERLAY_CLASS_NAME);
-    var lightboxMain = document.querySelector("." + LIGHTBOX_CLASS_NAME);
-    removeClassFromNode(overlayNode, "fadeIn");
-    addClassToNode(overlayNode, "fadeOut");
-    lightboxMain.style.top = "-100%";
-    document.body.style.overflowY = "auto";
+    var overlayNode = document.querySelector('.' + OVERLAY_CLASS_NAME);
+    var lightboxMain = document.querySelector('.' + LIGHTBOX_CLASS_NAME);
+    removeClassFromNode(overlayNode, 'fadeIn');
+    addClassToNode(overlayNode, 'fadeOut');
+    lightboxMain.style.top = '-100%';
+    document.body.style.overflowY = 'auto';
   }
   
   // ==================== INTERACTION END =========================
@@ -183,23 +219,28 @@
   }
 
   function getImageGroupNodes() {
-    var groupImagesSelector = "." + GROUP_IMAGE_CONTAINER_CLASS + " > ." + LIGHTBOX_GROUP_CLASS;
+    var groupImagesSelector = '.' + GROUP_IMAGE_CONTAINER_CLASS + ' > .' + LIGHTBOX_GROUP_CLASS;
     return document.querySelectorAll(groupImagesSelector);
   }
 
   function getCurrentImageNode() {
-    var currentImageSelector = "." + CURRENT_IMAGE_CONTAINER_CLASS + " > ." + CURRENT_IMAGE_CLASS;
+    var currentImageSelector = '.' + CURRENT_IMAGE_CONTAINER_CLASS + ' .' + CURRENT_IMAGE_CLASS;
     return document.querySelector(currentImageSelector);
   }
 
   function getCurrentImageContainerNode() {
-    var containerSelector = "." + LIGHTBOX_CLASS_NAME + " ." + CURRENT_IMAGE_CONTAINER_CLASS;
+    var containerSelector = '.' + LIGHTBOX_CLASS_NAME + ' .' + CURRENT_IMAGE_CONTAINER_CLASS;
     return document.querySelector(containerSelector);
   }
 
   function getImageGroupContainerNode() {
-    var containerSelector = "." + LIGHTBOX_CLASS_NAME + " ." + GROUP_IMAGE_CONTAINER_CLASS;
+    var containerSelector = '.' + LIGHTBOX_CLASS_NAME + ' .' + GROUP_IMAGE_CONTAINER_CLASS;
     return document.querySelector(containerSelector);
+  }
+
+  function getCurrentImageDescriptionNode() {
+    var descriptionSelector = '.' + LIGHTBOX_CLASS_NAME + ' .' + CURRENT_IMAGE_DESCRIPTION_CLASS;
+    return document.querySelector(descriptionSelector);
   }
   
   function findNextImageNodeInGroup() {
@@ -243,35 +284,52 @@
   var lastGroupFocused = undefined;
 
   function renderCurrentImageAndGroup(selectedNode) {
-    renderCurrentImage(selectedNode);
+    renderInitialCurrentImage(selectedNode);
     renderGroupImages(selectedNode);
   }
-
-  function renderNewCurrentImageFromGroup(newImageNode) {
+  
+  /**
+   * Changes source on current main image in lightbox
+   * and moves active class to correct image in group gallery
+   * @param  {NodeElement} newImageNode newly selected current image
+   * @return {undefined} ]
+   */
+  function makeNewImageCurrentImage(newImageNode) {
     var groupImageNodes = getImageGroupNodes();
     var currentImageNode = getCurrentImageNode();
-    var lightboxMain = document.querySelector("." + LIGHTBOX_CLASS_NAME);
+    var descriptionNode = getCurrentImageDescriptionNode();
+    var lightboxMain = document.querySelector('.' + LIGHTBOX_CLASS_NAME);
+    var description = newImageNode.firstChild.getAttribute('desc');
     
     for(var i = 0; i < groupImageNodes.length; i++) {
       var node = groupImageNodes[i];
       removeClassFromNode(node, CURRENT_ACTIVE_IMAGE_IN_GROUP_CLASS);
       if(node === newImageNode) {
         addClassToNode(newImageNode, CURRENT_ACTIVE_IMAGE_IN_GROUP_CLASS);
-        currentImageNode.setAttribute("src", node.firstChild.getAttribute("src"));
+        currentImageNode.setAttribute('src', node.firstChild.getAttribute('src'));
+        descriptionNode.innerText = description;
         lightboxMain.scrollTop = 0;
       }
     }
   }
+  
 
-  function renderCurrentImage(node) {
+  // TODO: Add event listeners for next and previous images
+  // to this for following methods (handleNextImageClick, handlePreviousImageClick)
+  function renderInitialCurrentImage(node) {
     var imgSource = node.getAttribute('original-src');
+    var description = node.getAttribute('desc');
     var currentImageNode = createElementFromTemplate(mainImageHTML, {
       currentImageClassName: CURRENT_IMAGE_CLASS,
-      src: imgSource,
-      text: ""
+      src: imgSource
     });
     var lightboxImageContainer = getCurrentImageContainerNode();
-    lightboxImageContainer.innerHTML = '';
+    var currentDescription = getCurrentImageDescriptionNode();
+    var currentImage = getCurrentImageNode();
+    if(currentImage) {
+      lightboxImageContainer.removeChild(getCurrentImageNode());
+    }
+    currentDescription.innerText = description;
     lightboxImageContainer.appendChild(currentImageNode);
   }
   
@@ -281,7 +339,7 @@
     var imageNodesInGroup = lightboxGroups[imageGroup];
 
     var groupImagesContainer = getImageGroupContainerNode();
-    off("." + GROUP_IMAGE_CONTAINER_CLASS,'click',"." + LIGHTBOX_GROUP_CLASS, handleImageGroupClick);
+    off('.' + GROUP_IMAGE_CONTAINER_CLASS,'click','.' + LIGHTBOX_GROUP_CLASS, handleImageGroupClick);
     groupImagesContainer.innerHTML = '';
 
     if(imageNodesInGroup.length < 2) { return; }
@@ -289,10 +347,11 @@
     for(var i = 0; i < imageNodesInGroup.length; i++) {
       var currentNode = imageNodesInGroup[i];
       var imgSource = currentNode.getAttribute('original-src');
+      var description = currentNode.getAttribute('desc');
       var currentImageNode = createElementFromTemplate(groupImagesHTML, {
         imageGroupClassName: LIGHTBOX_GROUP_CLASS,
         src: imgSource,
-        text: "",
+        desc: description
       });
       
       if(imgSource === node.getAttribute('original-src')) {
@@ -302,7 +361,7 @@
       // potentially a reflow concern but modern browsers batch appends well
       groupImagesContainer.appendChild(currentImageNode);
     }
-    on("." + GROUP_IMAGE_CONTAINER_CLASS,'click',"." + LIGHTBOX_GROUP_CLASS, handleImageGroupClick);
+    on('.' + GROUP_IMAGE_CONTAINER_CLASS,'click','.' + LIGHTBOX_GROUP_CLASS, handleImageGroupClick);
   }
 
   // ================== RENDER END ============================

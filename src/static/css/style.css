@@ -78,10 +78,14 @@ body {
   border-radius: 1rem;
 }
 
+.lightbox-close:hover {
+  color: white;
+}
+
 .lightbox-image-container {
   margin: 5% auto;
   width: 80%;
-  // height: 60%;
+  position: relative;
 }
 
 .lightbox-image-current {
@@ -94,12 +98,67 @@ body {
   display: block;
 }
 
+.lightbox-image-current-desc {
+  padding: 0 1rem 0.5rem;
+  font-size: 0.5rem;
+  font-weight: bold;
+  font-family: Arial, sans-serif;
+  color: #CCC;
+  text-align: center;
+}
+
 .lightbox-group-container {
   margin: 0 auto;
   list-style-type: none;
   height: 15%;
   padding: 0 1rem;
   text-align: center;
+}
+
+.lightbox-previous-image, .lightbox-next-image {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  cursor: pointer;
+  transition: left 0.5s, right 0.5s;
+}
+
+.lightbox-previous-image span, .lightbox-next-image span {
+  position: absolute;
+  top: 40%;
+  height: 0;
+  width: 0;
+  border: solid 0.75rem;
+  display: block;
+  border-color: transparent;
+}
+
+.lightbox-previous-image {
+  left: 0;
+  right: 70%;
+}
+
+.lightbox-previous-image span {
+  left: 0;
+  border-right-color: #CCC;
+}
+
+.lightbox-previous-image:active, .lightbox-previous-image:focus {
+  left: -0.5rem;
+}
+
+.lightbox-next-image {
+  left: 70%;
+  right: 0;
+}
+
+.lightbox-next-image span {
+  right: 0;
+  border-left-color: #CCC;
+}
+
+.lightbox-next-image:active, .lightbox-next-image:focus {
+  right: -0.5rem;
 }
 
 .lightbox-group-image {
