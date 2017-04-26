@@ -6,11 +6,4 @@ window.onload = function whenDocumentReady(event) {
       lightbox.init();
     }
   )
-  // constructPhotoGalleryViaAPI('.photo-gallery',
-  //   'results.json',
-  //   {},
-  //   function initLightBox() {
-  //     lightbox.init();
-  //   }
-  // )
 }
