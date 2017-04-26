@@ -15,6 +15,7 @@ and the javascript files util.js and lightbox.js at the end of the body element 
 ```
 <script src="util.js"></script>
 <script src="lightbox.js"></script>
+```
 
 To access your images in a lightbox, initialize the images using the following html attributes:
 
