@@ -44,7 +44,13 @@
   // TODO: Abstract out grouping functionality for clarity
   
   var lightboxGroups;
-
+  
+  /**
+   * Find all dom nodes with lightbox attributes, sort them
+   * in groups, and attach listeners to display a lightbox
+   * @param  {Object} config Options for additional configuration
+   * @return {undefined}
+   */
   var initLightBoxListeners = function(config) {
     var internalGroupCounter = 0;
 
@@ -87,7 +93,7 @@
     document.body.addEventListener('keydown',handleLightboxKeyPress);
     initBaseComponentsIfNeeded();
   };
-
+  
   function initBaseComponentsIfNeeded() {
     addOverlay();
     addLightboxContainer();
@@ -282,7 +288,7 @@
   
   // state held to tell if we should rerender or not
   var lastGroupFocused = undefined;
-
+  
   function renderCurrentImageAndGroup(selectedNode) {
     renderInitialCurrentImage(selectedNode);
     renderGroupImages(selectedNode);

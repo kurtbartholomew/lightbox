@@ -47,7 +47,7 @@
   function extractGiphyAttrs(json) {
     return {
       originalSrc: json.images.original.url || "",
-      src: json.images.fixed_height_small_still.url || "",
+      src: json.images.fixed_height_small_still.url || json.images.original_still.url || "",
       alttext: json.slug || "",
       title: json.slug || "",
       groupId: json.groupId || 1,
@@ -55,5 +55,7 @@
   }
   
   global.constructPhotoGalleryViaAPI = constructPhotoGalleryViaAPI;
+
+  // ================= Photo Gallery Construction Functions End ============ 
 
 })(window);

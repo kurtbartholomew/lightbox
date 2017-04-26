@@ -28,11 +28,11 @@ To access your images in a lightbox, initialize the images using the following h
 * **desc**: The description displayed under the image within the lightbox.
 * **original-src**: (**Required**) The image (typically full-size) displayed in the lightbox.
 * **data-lightbox**: (**Required**) Utilized by js to initialize lightbox.
-* **data-lightbox-group**: If specified, allows navigate only within specified groups. Default behavior is to put all images in a different group.
+* **data-lightbox-group**: If specified, allows navigate only within specified groups. Default behavior is to put all images in the same group.
 * **src**: (**Required**) The source of the image shown as a thumbnail.
 * **alt**: Alternate text for the image. Include this for accessibility.
 
-Finally, call the lightbox init method once the dom has been loaded:
+Finally, call the lightbox init method once the dom has been loaded to initialize click listeners on images with lightbox attributes.
 ```
 window.onload = function whenDocumentReady(event) {
   lightbox.init();
